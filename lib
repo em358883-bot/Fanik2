@@ -1,1 +1,363 @@
+import 'package:flutter/material.dart';
 
+void main() => runApp(const FanikApp());
+
+class FanikApp extends StatelessWidget {
+  const FanikApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Fanik',
+      locale: const Locale('en'), // Changed to English locale
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'Arial',
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF075FCF)),
+        scaffoldBackgroundColor: Colors.white,
+      ),
+      home: const HomeScreen(),
+    );
+  }
+}
+
+class Professional {
+  final String name, specialty, distance, rating, image;
+  final bool available;
+  const Professional(this.name, this.specialty, this.distance, this.rating,
+      this.image, this.available);
+}
+
+const professionals = [
+  Professional('Mohammed Al-Subaie', 'Electrician', '1.1 km', '4.9',
+      'https://i.pravatar.cc/160?img=12', true),
+  Professional('Ahmed Al-Otaibi', 'Electrician', '1.5 km', '4.8',
+      'https://i.pravatar.cc/160?img=13', true),
+  Professional('Khalid Al-Mutairi', 'Electrician', '2.3 km', '4.7',
+      'https://i.pravatar.cc/160?img=14', false),
+  Professional('Saad Al-Qahtani', 'Electrician', '2.8 km', '4.9',
+      'https://i.pravatar.cc/160?img=15', true),
+];
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int index = 0;
+
+  void go(int i) => setState(() => index = i);
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      HomeTab(onMap: () => go(1)),
+      const MapTab(),
+      const RequestsTab(),
+      const AccountTab(),
+    ];
+
+    return Directionality(
+      textDirection: TextDirection.ltr, // Changed to LTR for English
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Fanik',
+              style: TextStyle(fontWeight: FontWeight.w900)),
+          actions: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Center(child: Text('📍 Riyadh')),
+            ),
+            IconButton(onPressed: () {}, icon: const Icon(Icons.notifications)),
+          ],
+        ),
+        body: pages[index],
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: index,
+          onDestinationSelected: go,
+          destinations: const [
+            NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
+            NavigationDestination(icon: Icon(Icons.map_outlined), selectedIcon: Icon(Icons.map), label: 'Map'),
+            NavigationDestination(icon: Icon(Icons.assignment_outlined), selectedIcon: Icon(Icons.assignment), label: 'Requests'),
+            NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Account'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HomeTab extends StatelessWidget {
+  final VoidCallback onMap;
+  const HomeTab({super.key, required this.onMap});
+
+  @override
+  Widget build(BuildContext context) {
+    final cats = [
+      ['⚡', 'Electricity'], ['❄️', 'AC'], ['🚰', 'Plumbing'], ['🔨', 'Carpentry'],
+      ['🎨', 'Painting'], ['🏗️', 'Contracting'], ['🚗', 'Cars'], ['🏭', 'Industrial'],
+    ];
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFF075FCF), Color(0xFF0B79E8)]),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Every professional you need... close to you',
+                style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 15),
+            InkWell(
+              onTap: onMap,
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                child: const Row(children: [
+                  Icon(Icons.search, color: Colors.grey), SizedBox(width: 8),
+                  Text('Search for an engineer, technician, or service', style: TextStyle(color: Colors.grey))
+                ]),
+              ),
+            ),
+          ]),
+        ),
+        const SizedBox(height: 20),
+        const Text('Categories', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: cats.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4, childAspectRatio: .95, crossAxisSpacing: 8, mainAxisSpacing: 8),
+          itemBuilder: (_, i) => InkWell(
+            onTap: onMap,
+            child: Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13),
+                  side: const BorderSide(color: Color(0xFFE5EAF1))),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(cats[i][0], style: const TextStyle(fontSize: 25)),
+                const SizedBox(height: 5),
+                Text(cats[i][1], style: const TextStyle(fontSize: 11)),
+              ]),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Text('Professionals near you',
+            style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+        ProfessionalCard(professional: professionals.first),
+      ],
+    );
+  }
+}
+
+class ProfessionalCard extends StatelessWidget {
+  final Professional professional;
+  const ProfessionalCard({super.key, required this.professional});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(top: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Color(0xFFE3E8EF))),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(10),
+        leading: CircleAvatar(
+          radius: 28,
+          backgroundImage: NetworkImage(professional.image),
+        ),
+        title: Text(professional.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('⚡ ${professional.specialty}\n⭐ ${professional.rating}   📍 ${professional.distance}'),
+        trailing: const Icon(Icons.chevron_left),
+        onTap: () => Navigator.push(context, MaterialPageRoute(
+          builder: (_) => ProfileScreen(professional: professional),
+        )),
+      ),
+    );
+  }
+}
+
+class MapTab extends StatelessWidget {
+  const MapTab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const Text('Professionals near you',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Container(
+          height: 460,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            color: const Color(0xFFEFF3F7),
+          ),
+          child: Stack(children: [
+            Positioned.fill(child: CustomPaint(painter: MapPainter())),
+            _marker(context, professionals[0], 55, 40),
+            _marker(context, professionals[1], 155, 220),
+            _marker(context, professionals[2], 280, 90),
+            _marker(context, professionals[3], 365, 240),
+            const Center(child: Icon(Icons.my_location, color: Colors.blue, size: 28)),
+          ]),
+        ),
+      ],
+    );
+  }
+
+  Widget _marker(BuildContext context, Professional p, double top, double right) {
+    return Positioned(
+      top: top, right: right,
+      child: InkWell(
+        onTap: () => Navigator.push(context, MaterialPageRoute(
+          builder: (_) => ProfileScreen(professional: p),
+        )),
+        child: Column(children: [
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle, color: Colors.white,
+              border: Border.all(color: const Color(0xFF075FCF), width: 3),
+            ),
+            padding: const EdgeInsets.all(2),
+            child: CircleAvatar(radius: 25, backgroundImage: NetworkImage(p.image)),
+          ),
+          const SizedBox(height: 3),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8),
+                boxShadow: const [BoxShadow(blurRadius: 5, color: Colors.black26)]),
+            child: Text('★ ${p.rating} · ${p.distance}', style: const TextStyle(fontSize: 10)),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+class MapPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final road = Paint()..color = Colors.white..strokeWidth = 24;
+    canvas.drawLine(Offset(0, size.height*.55), Offset(size.width, size.height*.25), road);
+    canvas.drawLine(Offset(size.width*.15, 0), Offset(size.width*.75, size.height), road);
+    final thin = Paint()..color = const Color(0xFFD5DDE6)..strokeWidth = 2;
+    for (double y=70; y<size.height; y+=90) {
+      canvas.drawLine(Offset(0,y), Offset(size.width,y+30), thin);
+    }
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class ProfileScreen extends StatelessWidget {
+  final Professional professional;
+  const ProfileScreen({super.key, required this.professional});
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Professional Profile')),
+        body: ListView(padding: const EdgeInsets.all(16), children: [
+          Center(child: CircleAvatar(radius: 52, backgroundImage: NetworkImage(professional.image))),
+          const SizedBox(height: 10),
+          Center(child: Text(professional.name, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold))),
+          Center(child: Text('⚡ ${professional.specialty} · Riyadh')),
+          const SizedBox(height: 12),
+          Card(child: Padding(padding: const EdgeInsets.all(14),
+            child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+              Text('⭐ ${professional.rating}'),
+              const Text('128 reviews'),
+              Text(professional.available ? '🟢 Available now' : '⚪ Unavailable'),
+            ]))),
+          const SizedBox(height: 12),
+          const Text('Services', style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 8, children: const [
+            Chip(label: Text('Electrical wiring')), Chip(label: Text('Fault detection')),
+            Chip(label: Text('Electrical panels')), Chip(label: Text('Home maintenance')),
+          ]),
+          const SizedBox(height: 18),
+          Row(children: [
+            Expanded(child: FilledButton.icon(onPressed: () {}, icon: const Icon(Icons.phone), label: const Text('Call'))),
+            const SizedBox(width: 8),
+            Expanded(child: FilledButton.icon(onPressed: () {}, icon: const Icon(Icons.chat), label: const Text('WhatsApp'))),
+          ]),
+          const SizedBox(height: 8),
+          FilledButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RequestScreen())),
+            child: const Text('Request Service'),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+class RequestScreen extends StatelessWidget {
+  const RequestScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(textDirection: TextDirection.ltr, child: Scaffold(
+      appBar: AppBar(title: const Text('Request Service')),
+      body: ListView(padding: const EdgeInsets.all(16), children: [
+        const Text('Problem description', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 7),
+        const TextField(maxLines: 4, decoration: InputDecoration(
+          hintText: 'Write a detailed description of the problem', border: OutlineInputBorder())),
+        const SizedBox(height: 15),
+        const Text('Location', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 7),
+        const TextField(decoration: InputDecoration(
+          prefixIcon: Icon(Icons.location_on), hintText: 'Specify service location',
+          border: OutlineInputBorder())),
+        const SizedBox(height: 20),
+        FilledButton(onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Request sent successfully')),
+          );
+        }, child: const Text('Submit request')),
+      ]),
+    ));
+  }
+}
+
+class RequestsTab extends StatelessWidget {
+  const RequestsTab({super.key});
+  @override
+  Widget build(BuildContext context) => const Center(child: Text(
+    'No requests at the moment', style: TextStyle(fontSize: 18)));
+}
+
+class AccountTab extends StatelessWidget {
+  const AccountTab({super.key});
+  @override
+  Widget build(BuildContext context) => ListView(padding: const EdgeInsets.all(16), children: [
+    const Text('My Account', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+    const SizedBox(height: 15),
+    Card(child: ListTile(
+      leading: const Icon(Icons.engineering, color: Color(0xFF075FCF)),
+      title: const Text('Join as a professional'),
+      subtitle: const Text('Technician, worker, engineer, contractor, establishment or company'),
+      trailing: const Icon(Icons.chevron_left),
+      onTap: () {},
+    )),
+    const Card(child: ListTile(
+      leading: Icon(Icons.verified, color: Colors.green),
+      title: Text('Verification'),
+      subtitle: Text('Verification system will be added in the server-linked version'),
+    )),
+  ]);
+}
